@@ -1,0 +1,87 @@
+﻿@using ClockWeatherPool.Services
+@using ClockWeatherPool.Services.WeatherService
+@using ClockWeatherPool.Services.WeatherService.Models
+@inject WeatherService WeatherService
+@inject PoolService PoolService
+
+@page "/"
+
+<div class="container @(IsDay() ? "containerAnimation" : "")">
+    <div class="item1">
+        <h2>@time</h2>
+    </div>
+    <div class="item2">
+        <h2>@poolCount</h2>
+    </div>
+    <div class="item3">
+        <h2>Item 3</h2>
+    </div>
+    <div class="item4">
+        @if (weatherData != null)
+        {
+            <h2>@weatherData.Current.TempC</h2>
+            <img src="https:@weatherData.Current.Condition.Icon" />
+            <h4>@weatherData.Current.Condition.Text</h4>
+            <h5>@weatherData.Location.Name</h5>
+        }
+        else
+        {
+            <h3>Loading...</h3>
+        }
+    </div>
+</div>
+
+
+
+@code {
+    private DateTime dateTime;
+    private string time = "Loading...";
+    private string poolCount = "Loading...";
+    private WeatherData? weatherData = null;
+
+    protected override void OnInitialized()
+    {
+        _ = ReloadTime();
+        _ = ReloadPool();
+        _ = ReloadWeather();
+    }
+
+    private bool IsDay()
+    {
+        var hour = dateTime.Hour;
+        return hour >= 9 && hour < 19;
+    }
+
+    async Task ReloadTime()
+    {
+        while (true)
+        {
+            dateTime = DateTime.Now;
+            time = dateTime.ToString("HH:mm");
+            StateHasChanged();
+            await Task.Delay(1000);
+        }
+    }
+
+    async Task ReloadPool()
+    {
+        while (true)
+        {
+            poolCount = await PoolService.GetCount();
+            StateHasChanged();
+            await Task.Delay(600000);
+        }
+    }
+
+    async Task ReloadWeather()
+    {
+        while (true)
+        {
+            weatherData = await WeatherService.GetWeatherData();
+            StateHasChanged();
+            await Task.Delay(1800000);
+        }
+    }
+}
+
+
